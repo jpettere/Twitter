@@ -22,8 +22,6 @@ class TweetsViewController: UIViewController, UITableViewDataSource, UITableView
         tableView.dataSource = self
         tableView.delegate = self
 
-
-        
         TwitterClient.sharedInstance.homeTimeline({ (tweets: [Tweet]) -> () in
             self.tweets = tweets
             self.tableView.reloadData()
@@ -32,9 +30,17 @@ class TweetsViewController: UIViewController, UITableViewDataSource, UITableView
         
         })
         
-        
-
         // Do any additional setup after loading the view.
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        TwitterClient.sharedInstance.homeTimeline({ (tweets: [Tweet]) -> () in
+            self.tweets = tweets
+            self.tableView.reloadData()
+            }, failure: { (error: NSError) -> () in
+                print(error.localizedDescription)
+                
+        })
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
@@ -45,7 +51,6 @@ class TweetsViewController: UIViewController, UITableViewDataSource, UITableView
         cell.userName.text = "@\(tweet.username!)"
         cell.userHandle.text = tweet.displayname
         cell.tweetDescriptionLabel.text = tweet.text as? String
-        cell.timestampLabel.text = "\(tweet.timestamp!)"
         
         cell.profileImageView.layer.cornerRadius = 7.0
         cell.profileImageView.clipsToBounds = true
@@ -62,6 +67,12 @@ class TweetsViewController: UIViewController, UITableViewDataSource, UITableView
         }
     }
     
+    @IBAction func cancelToTweetsViewController(segue:UIStoryboardSegue) {
+    }
+    
+    @IBAction func TwitterToTweetsViewController(segue:UIStoryboardSegue) {
+    }
+    
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -72,16 +83,50 @@ class TweetsViewController: UIViewController, UITableViewDataSource, UITableView
         TwitterClient.sharedInstance.logout()
     }
     
-    
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+        if segue.identifier == "tweetDetailSegue" {
+            let cell = sender as! UITableViewCell
+            let indexPath = tableView.indexPathForCell(cell)
+            let tweet = tweets![indexPath!.row]
+            let tweetViewController = segue.destinationViewController as! TweetViewController
+            tweetViewController.tweet = tweet
+        } else if segue.identifier == "profileSegue" {
+            
+            let button = sender as! UIButton
+            
+            var superView = button.superview
+            while superView != nil {
+                if let tweetCell = superView as? TweetCell {
+                    if let selectedUser = tweetCell.tweet.user {
+                        
+                        let profileViewController = segue.destinationViewController as! ProfileViewController
+                        profileViewController.user = selectedUser
+                        
+                        
+                        
+                        superView = nil
+                    }
+                } else {
+                    superView = superView?.superview
+                }
+            }
+        } else if segue.identifier == "composeSegue" {
+            if let tweet = sender as? Tweet {
+                let composeViewController = segue.destinationViewController as! ComposeViewController
+                composeViewController.replyTweet = tweet
+    
+            }
+        } else if segue.identifier == "replySegue" {
+            print("started replying")
+            if let tweet = sender as? Tweet {
+                let composeViewController = segue.destinationViewController as! ComposeViewController
+                composeViewController.replyTweet = tweet
+                let replyHandle  = "@\((tweet.user?.screenname!)!) " as String
+    
+                composeViewController.tweetId = ((tweet.id!) as? String)!
+                composeViewController.replyTo = replyHandle
+                composeViewController.isReply = true
+            }
+        }
     }
-    */
-
 }

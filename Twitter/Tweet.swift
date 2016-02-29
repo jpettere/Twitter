@@ -16,11 +16,19 @@ class Tweet: NSObject {
     var text: NSString?
     var timestamp: NSDate?
     var profileImageUrl: NSURL?
+    var retweeted: Bool?
+    var favorited: Bool?
+    var retweeted_status: NSDictionary?
+    var createdAtString: String?
+    var createdAt: NSDate?
     
     var id: NSNumber?
     
-    var retweetCount: Int = 0
-    var favouritesCount: Int = 0
+    var timePassed: Int?
+    var timeSince: String!
+    
+    var retweetCount: Int
+    var favouritesCount: Int
     
     init(dictionary: NSDictionary) {
         
@@ -31,14 +39,6 @@ class Tweet: NSObject {
         retweetCount = (dictionary["retweet_count"] as? Int) ?? 0
         favouritesCount = (dictionary["favorite_count"] as? Int) ?? 0
         
-        let timestampString = dictionary["created_at"] as? String
-        
-        if let timestampString = timestampString {
-            let formatter = NSDateFormatter()
-            formatter.dateFormat = "EEE MMM d HH:mm:ss Z y"
-            timestamp = formatter.dateFromString(timestampString)
-        }
-        
         user = User(dictionary: dictionary["user"] as! NSDictionary)
         
         username = dictionary["user"]!["screen_name"] as? String
@@ -48,6 +48,29 @@ class Tweet: NSObject {
         if let profileUrlString = profileUrlString {
             profileImageUrl = NSURL(string: profileUrlString)
         }
+        createdAtString = dictionary["created_at"] as? String
+        let formatter = NSDateFormatter()
+        formatter.dateFormat = "EEE MMM d HH:mm:ss Z y"
+        createdAt = formatter.dateFromString(createdAtString!)
+        
+        let now = NSDate()
+        let then = createdAt
+        timePassed = Int(now.timeIntervalSinceDate(then!))
+        
+        if timePassed >= 86400 {
+            timeSince = String(timePassed! / 86400)+"d"
+        }
+        if (3600..<86400).contains(timePassed!){
+            timeSince = String(timePassed!/3600)+"h"
+        }
+        if (60..<3600).contains(timePassed!){
+            timeSince = String(timePassed!/60)+"m"
+        }
+        if timePassed < 60 {
+            timeSince = String(timePassed!)+"s"
+        }
+        
+
     }
     
     class func tweetsWithArray(dictionaries: [NSDictionary]) -> [Tweet] {

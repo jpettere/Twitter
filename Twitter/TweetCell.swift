@@ -25,7 +25,7 @@ class TweetCell: UITableViewCell {
     var toggleRetweet: Bool = false
     var toggleFavorite: Bool = false
     
-    var numFavorites = Int()
+    var numFavorites = Int() 
     var numRetweet = Int()
     
     var tweet: Tweet! {
@@ -36,10 +36,9 @@ class TweetCell: UITableViewCell {
             retweetCountLabel.text = "\(tweet.retweetCount)"
             numRetweet = tweet.retweetCount
             profileImageView.setImageWithURL(tweet.user!.profileUrl!)
-            
+            timestampLabel.text = tweet.timeSince
         }
     }
-    
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -48,8 +47,6 @@ class TweetCell: UITableViewCell {
         profileImageView.clipsToBounds = true
         // Initialization code
     }
-    
-
     
     @IBAction func onRetweetPressed(sender: AnyObject) {
         if toggleRetweet  {
